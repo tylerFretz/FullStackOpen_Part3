@@ -77,7 +77,7 @@ app.post('/api/phonebook', (req, res) => {
     const body = req.body
 
     if (!body.name || !body.number) {
-      console.log("name or number missing");
+      console.log("name or number missing 2");
         return res.status(400).json({
             error: 'name or number missing'
         })
