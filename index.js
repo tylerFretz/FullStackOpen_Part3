@@ -61,8 +61,18 @@ app.get('/info', (req, res) => {
 
 
 app.get('/api/phonebook/:id', (req, res) => {
-  Contact.findById(req.params.id).then(contact => {
-    res.json(contact)
+  Contact.findById(req.params.id)
+  .then(contact => {
+    if (contact) {
+      res.json(contact)
+    }
+    else {
+      res.status(404).end()
+    }
+  })
+  .catch(err => {
+    console.log(err)
+    res.status(400).send({ error: 'malformatted id' })
   })
 })
 
@@ -84,13 +94,15 @@ app.post('/api/phonebook', (req, res) => {
         })
     }
 
-    const uniqueName = phonebook.some(c => c.name === body.name)
+    // const uniqueName = Contact.find( { name: { $eq: body.name } } )
 
-    if (uniqueName) {
-        return res.status(400).json({
-            error: 'name must be unique'
-        })
-    }
+    // console.log(uniqueName);
+
+    // if (uniqueName.length > 0) {
+    //     return res.status(400).json({
+    //         error: 'name must be unique'
+    //     })
+    // }
 
     const contact = new Contact({
       name: body.name,
