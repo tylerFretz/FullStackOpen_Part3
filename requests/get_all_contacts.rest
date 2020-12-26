@@ -1,13 +1,16 @@
 GET http://localhost:3001/api/phonebook
 
 ###
-POST http://localhost:3001/api/phonebook/ HTTP/1.1
+POST http://localhost:3001/api/phonebook HTTP/1.1
 Content-Type: application/json
 
 {
-    "name": "Tyler",
+    "name": "Tylerzdzs",
     "number": "5197365455"
 }
+
+###
+GET http://localhost:3001/api/phonebook/5fe7862e281aaf2f87c9cfbc
 
 ###
 DELETE http://localhost:3001/api/phonebook/780

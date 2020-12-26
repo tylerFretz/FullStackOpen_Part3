@@ -1,6 +1,8 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const Contact = require('./models/contact')
 
 morgan.token('body', (req) => JSON.stringify(req.body))
 
@@ -10,6 +12,7 @@ app.use(cors())
 app.use(express.json())
 app.use(express.static('build'))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
+
 
 let phonebook = [
   {
@@ -44,7 +47,9 @@ const generateId = () => {
 
 
 app.get('/api/phonebook', (req, res) => {
-  res.json(phonebook)
+  Contact.find({}).then(contacts => {
+    res.json(contacts)
+  })
 })
 
 
@@ -56,12 +61,9 @@ app.get('/info', (req, res) => {
 
 
 app.get('/api/phonebook/:id', (req, res) => {
-    const id = Number(req.params.id)
-    const contact = phonebook.find(contact => contact.id === id)
-
-    contact 
-        ? res.json(contact)
-        : res.status(404).end()
+  Contact.findById(req.params.id).then(contact => {
+    res.json(contact)
+  })
 })
 
 
@@ -90,23 +92,19 @@ app.post('/api/phonebook', (req, res) => {
         })
     }
 
-    const contact = {
-        name: body.name,
-        number: body.number,
-        id: generateId()
-    }
+    const contact = new Contact({
+      name: body.name,
+      number: body.number
+    })
 
-    phonebook = phonebook.concat(contact)
-
-    res.json(contact)
+    contact.save().then(savedContact => {
+      res.json(savedContact)
+    })
 })
 
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 }) 
 
-
-
-//npx json-server --port 3001 --watch db.json
