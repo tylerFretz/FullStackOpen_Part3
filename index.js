@@ -45,20 +45,8 @@ app.delete('/api/phonebook/:id', (req, res, next) => {
 })
 
 // Create new contact
-app.post('/api/phonebook', (req, res) => {
+app.post('/api/phonebook', (req, res, next) => {
     const body = req.body
-
-    if (!body.name || !body.number) {
-        return res.status(400).json({
-            error: 'name or number missing'
-        })
-    }
-
-    // if (nameAlreadyExists(body.name)) {
-    //   return res.status(400).json({
-    //     error: 'Name already exists in the phonebook'
-    //   })
-    // }
 
     const contact = new Contact({
       name: body.name,
@@ -68,6 +56,7 @@ app.post('/api/phonebook', (req, res) => {
     contact.save().then(savedContact => {
       res.json(savedContact)
     })
+    .catch(err => next(err))
 })
 
 // Update existing contact
@@ -86,6 +75,9 @@ app.put('/api/phonebook/:id', (req, res, next) => {
     .catch(err => next(err))
 })
 
+
+// Error handling
+
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
@@ -98,25 +90,15 @@ const errorHandler = (err, req, res, next) => {
   if (err.name === 'CastError') {
     return res.status(400).send({ error: 'malformatted id' })
   }
+  else if (error.name === 'ValidationError') {
+    return res.status(400).json({ error: err.message })
+  }
 
   next(err)
 }
 
 app.use(errorHandler)
 
-const nameAlreadyExists = name => {
-
-  Contact.findOne({ name: name}, (obj, err) => {
-    console.log(obj);
-  })
-
-  // console.log(contactsWithName);
-
-  // if (contactsWithName !== null) {
-  //   return true;
-  // }
-  // return false;
-}
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
