@@ -16,12 +16,12 @@ mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, useFind
 
 const contactSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
-    number: { type: String, required: true }
+    number: { type: String, required: true, match: /\d{3}-\d{3}-\d{4}/ }
 })
 
 
 // Apply the uniqueValidator plugin to contactSchema.
-userSchema.plugin(uniqueValidator);
+contactSchema.plugin(uniqueValidator);
 
 // Override the toJSON method to remove the _id and __v fields
 contactSchema.set('toJSON', {
