@@ -88,10 +88,14 @@ app.use(unknownEndpoint)
 
 const errorHandler = (err, req, res, next) => {
   console.error(err.message)
-  console.log('********************');
-  console.log(err);
-  console.log('********************');
-  if (err.name === 'CastError') {
+      console.log('********************');
+    console.log(err);
+    console.log('********************');
+
+  if (err.errors.number.kind === 'regexp') {
+    return res.status(400).send({ error: 'Number must be in this format: 123-123-1234' })
+  }
+  else if (err.name === 'CastError') {
     return res.status(400).send({ error: 'malformatted id' })
   }
   else if (err.name === 'ValidationError') {
