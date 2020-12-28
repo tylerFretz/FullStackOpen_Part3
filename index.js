@@ -3,88 +3,48 @@ const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const Contact = require('./models/contact')
-
-morgan.token('body', (req) => JSON.stringify(req.body))
-
 const app = express()
 
-app.use(cors())
-app.use(express.json())
 app.use(express.static('build'))
+app.use(express.json())
+app.use(cors())
+morgan.token('body', (req) => JSON.stringify(req.body))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 
-let phonebook = [
-  {
-    "name": "John Barron",
-    "number": "123-555-4567",
-    "id": 1
-  },
-  {
-    "name": "John Miller",
-    "number": "321-555-7654",
-    "id": 2
-  },
-  {
-    "name": "Carolin Gallego",
-    "number": "213-555-5467",
-    "id": 3
-  },
-  {
-    "name": "David Dennison",
-    "number": "231-555-6754",
-    "id": 4
-  },
-]
+// Get total contacts info
+app.get('/info', (req, res) => {
+  Contact.find({})
+})
 
-
-const generateId = () => {
-    const maxId = phonebook.length > 0
-        ? Math.max(...phonebook.map(n => n.id))
-        : 0
-    return maxId + Math.floor(Math.random() * 1000)
-}   
-
-
+// Get all
 app.get('/api/phonebook', (req, res) => {
   Contact.find({}).then(contacts => {
-    res.json(contacts)
+    res.json(contacts.map(contact => contact.toJSON()))
   })
 })
 
-
-app.get('/info', (req, res) => {
-    let info = `<p>Phonebook has info for ${phonebook.length} people</p>`
-    info += new Date()
-    res.send(info)
-})
-
-
-app.get('/api/phonebook/:id', (req, res) => {
+// Get individual contact
+app.get('/api/phonebook/:id', (req, res, next) => {
   Contact.findById(req.params.id)
-  .then(contact => {
-    if (contact) {
-      res.json(contact)
-    }
-    else {
-      res.status(404).end()
-    }
-  })
-  .catch(err => {
-    console.log(err)
-    res.status(400).send({ error: 'malformatted id' })
-  })
+    .then(contact => {
+      contact
+        ? res.json(contact)
+        : res.status(404).end()
+    })
+    .catch(err => next(err))
 })
 
-
-app.delete('/api/phonebook/:id', (req, res) => {
-    const id = Number(req.params.id)
-    phonebook = phonebook.filter(contact => contact.id !== id)
-
-    res.status(204).end()
+// Delete contact
+app.delete('/api/phonebook/:id', (req, res, next) => {
+    Contact.findByIdAndRemove(req.params.id)
+      .then(result => {
+        res.status(204).end()
+      })
+      .catch(err => next(err))
 })
 
-
+// Create new contact
 app.post('/api/phonebook', (req, res) => {
     const body = req.body
 
@@ -94,14 +54,10 @@ app.post('/api/phonebook', (req, res) => {
         })
     }
 
-    // const uniqueName = Contact.find( { name: { $eq: body.name } } )
-
-    // console.log(uniqueName);
-
-    // if (uniqueName.length > 0) {
-    //     return res.status(400).json({
-    //         error: 'name must be unique'
-    //     })
+    // if (nameAlreadyExists(body.name)) {
+    //   return res.status(400).json({
+    //     error: 'Name already exists in the phonebook'
+    //   })
     // }
 
     const contact = new Contact({
@@ -114,6 +70,53 @@ app.post('/api/phonebook', (req, res) => {
     })
 })
 
+// Update existing contact
+app.put('/api/phonebook/:id', (req, res, next) => {
+  const body = req.body
+
+  const contact = {
+    name: body.name,
+    number: body.number
+  }
+
+  Contact.findByIdAndUpdate(req.params.id, contact, { new: true })
+    .then(updatedContact => {
+      res.json(updatedContact)
+    })
+    .catch(err => next(err))
+})
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)
+
+const errorHandler = (err, req, res, next) => {
+  console.error(err.message)
+
+  if (err.name === 'CastError') {
+    return res.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(err)
+}
+
+app.use(errorHandler)
+
+const nameAlreadyExists = name => {
+
+  Contact.findOne({ name: name}, (obj, err) => {
+    console.log(obj);
+  })
+
+  // console.log(contactsWithName);
+
+  // if (contactsWithName !== null) {
+  //   return true;
+  // }
+  // return false;
+}
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
