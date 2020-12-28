@@ -14,7 +14,9 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :b
 
 // Get total contacts info
 app.get('/info', (req, res) => {
-  Contact.find({})
+  Contact.find({}).then(contacts => {
+    res.send(`<p>There are ${contacts.length} contacts in the phonebook. ${new Date()}</p>`)
+  })
 })
 
 // Get all
@@ -86,16 +88,31 @@ app.use(unknownEndpoint)
 
 const errorHandler = (err, req, res, next) => {
   console.error(err.message)
-
+  console.log('********************');
+  console.log(err);
+  console.log('********************');
   if (err.name === 'CastError') {
     return res.status(400).send({ error: 'malformatted id' })
   }
-  else if (error.name === 'ValidationError') {
+  else if (err.name === 'ValidationError') {
     return res.status(400).json({ error: err.message })
   }
 
   next(err)
 }
+
+  // if (err.name === 'CastError') {
+  //   return res.status(400).send({ error: 'malformatted id' })
+  // }
+  // else if (err.name === 'ValidationError') {
+  //   console.log('********************');
+  //   console.log(err);
+  //   console.log('********************');
+  //   if (err.errors.name.kind === 'unique') {
+  //     return res.status(400).json({ error: 'Contact name must be unique'})
+  //   }
+  //   return res.status(400).json({ error: 'Number must be in this format: 123-123-1234' })
+  // }
 
 app.use(errorHandler)
 
