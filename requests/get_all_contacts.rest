@@ -9,6 +9,17 @@ Content-Type: application/json
     "number": "519-736-5455"
 }
 
+
+###
+PUT http://localhost:3001/api/phonebook/5fe793787ca6734a2f86b076 HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "Trina",
+    "number": "adsfsdfsf"
+}
+
+//"number": "123-123-1234"
 ###
 GET http://localhost:3001/api/phonebook/5fasdf
 

@@ -63,14 +63,14 @@ app.post('/api/phonebook', (req, res, next) => {
 
 // Update existing contact
 app.put('/api/phonebook/:id', (req, res, next) => {
-  const body = req.body
+  const { number } = req.body
 
-  const contact = {
-    name: body.name,
-    number: body.number
-  }
+  // const contact = {
+  //   name: body.name,
+  //   number: body.number
+  // }
 
-  Contact.findByIdAndUpdate(req.params.id, contact, { new: true })
+  Contact.findByIdAndUpdate(req.params.id, { number }, { new: true, runValidators: true })
     .then(updatedContact => {
       res.json(updatedContact)
     })
@@ -88,35 +88,24 @@ app.use(unknownEndpoint)
 
 const errorHandler = (err, req, res, next) => {
   console.error(err.message)
-      console.log('********************');
-    console.log(err);
-    console.log('********************');
 
-  if (err.errors.number.kind === 'regexp') {
+  if (err.name === 'CastError') {
+    return res.status(400).send({ error: 'malformatted id' })
+  }
+  else if (err.errors.number && err.errors.number.kind === 'regexp') {
     return res.status(400).send({ error: 'Number must be in this format: 123-123-1234' })
   }
-  else if (err.name === 'CastError') {
-    return res.status(400).send({ error: 'malformatted id' })
+  else if(err.errors.name && err.errors.name.kind === 'unique') {
+    return res.status(400).send({ error: 'Name must be unique' })
+  }
+  else if(err.errors.name && err.errors.name.kind === 'regexp') {
+    return res.status(400).send({ error: 'Name must be at least 3 characters long and not have numbers' })
   }
   else if (err.name === 'ValidationError') {
     return res.status(400).json({ error: err.message })
   }
-
   next(err)
 }
-
-  // if (err.name === 'CastError') {
-  //   return res.status(400).send({ error: 'malformatted id' })
-  // }
-  // else if (err.name === 'ValidationError') {
-  //   console.log('********************');
-  //   console.log(err);
-  //   console.log('********************');
-  //   if (err.errors.name.kind === 'unique') {
-  //     return res.status(400).json({ error: 'Contact name must be unique'})
-  //   }
-  //   return res.status(400).json({ error: 'Number must be in this format: 123-123-1234' })
-  // }
 
 app.use(errorHandler)
 

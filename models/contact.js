@@ -15,7 +15,7 @@ mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, useFind
     })
 
 const contactSchema = new mongoose.Schema({
-    name: { type: String, required: true, unique: true },
+    name: { type: String, required: true, unique: true, match: /^[a-z ,.'-]{3,}$/i },
     number: { type: String, required: true, match: /\d{3}-\d{3}-\d{4}/ }
 })
 
