@@ -93,7 +93,7 @@ const errorHandler = (err, req, res, next) => {
     return res.status(400).send({ error: 'malformatted id' })
   }
   else if (err.errors.number && err.errors.number.kind === 'regexp') {
-    return res.status(400).send({ error: 'Number must be in this format: 123-123-1234' })
+    return res.status(400).send({ error: 'Number must be in this format: (123) 123-1234' })
   }
   else if(err.errors.name && err.errors.name.kind === 'unique') {
     return res.status(400).send({ error: 'Name must be unique' })
